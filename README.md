@@ -1,9 +1,15 @@
 # My 4coder custom layer
 My custom layer for the awesome text editor 4coder beta version 4.1.7 super!
-Installation is simple just put the files in your `custom` directory and run the provided 
-build script on the file `4coder_alexander.cpp` like this:
+Installation is simple all you need to do is download the sources and place
+them inside your 4coder `custom` folder and compile the executable.
+For compiling the executable there already exists build scripts for each platform and
+target architecture, for example you can call this inside the 4coder root directory:
 ```
-custom\bin\buildsuper_x64-win.bat custom\4coder_alexander.cpp
+custom\bin\buildsuper_x64-win.bat ..\4coder-custom\4coder_aleman_bindings.cpp
 ```
-Make sure that the editor is closed before compiling.
-And of course change the build script depending on your operating system and target processor architecture.
+Before compiling make sure that the editor is closed and that your working directory
+is the 4coder root i.e. same directory as the `4ed` executable.
+
+## Keybindings
+The default keybindings are loosely based on to the `xah-fly-keys` which are explained
+here <http://ergoemacs.org/misc/ergoemacs_vi_mode.html>.
