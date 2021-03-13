@@ -15,6 +15,9 @@ global i32 current_edit_mode = EditorMode_Normal;
 CUSTOM_ID(command_map, mapid_shared);
 CUSTOM_ID(command_map, mapid_normal);
 CUSTOM_ID(command_map, mapid_insert);
+CUSTOM_ID(command_map, mapid_leader);
+CUSTOM_ID(command_map, mapid_io);
+CUSTOM_ID(command_map, mapid_workspace);
 
 void
 set_current_mapid(Application_Links* app, Command_Map_ID mapid) {
@@ -46,7 +49,7 @@ aleman_4coder_initialize(Application_Links *app,
     } else if (OS_MAC && string_match(mapping, string_u8_litexpr("choose"))){
         bindings_file_name = string_u8_litexpr("mac-bindings.4coder");
     }
-
+    
     // if (dynamic_binding_load_from_file(app, &framework_mapping, bindings_file_name)){
         // setup_essential_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
     // } else {
@@ -95,6 +98,25 @@ CUSTOM_COMMAND_SIG(custom_startup) {
 CUSTOM_COMMAND_SIG(to_normal_mode) {
     set_current_mapid(app, mapid_normal);
     current_edit_mode = EditorMode_Normal;
+    active_color_table.arrays[ defcolor_cursor ].vals[ 0 ] = 0xffff5533;
+    active_color_table.arrays[ defcolor_at_cursor ].vals[ 0 ] = 0xff00aacc;
+    active_color_table.arrays[ defcolor_margin_active ].vals[ 0 ] = 0xffff5533;
+}
+
+CUSTOM_COMMAND_SIG(to_leader_mode) {
+    if (current_edit_mode == EditorMode_Normal) {
+        set_current_mapid(app, mapid_leader);
+
+        active_color_table.arrays[ defcolor_cursor ].vals[ 0 ] = 0xff80ff80;
+        active_color_table.arrays[ defcolor_at_cursor ].vals[ 0 ] = 0xff293134;
+        active_color_table.arrays[ defcolor_margin_active ].vals[ 0 ] = 0xff80ff80;
+    }
+}
+
+CUSTOM_COMMAND_SIG(to_io_mode) {
+    if (current_edit_mode == EditorMode_Normal) {
+        set_current_mapid(app, mapid_io);
+    }
 }
 
 CUSTOM_COMMAND_SIG(to_insert_mode) {
@@ -103,12 +125,10 @@ CUSTOM_COMMAND_SIG(to_insert_mode) {
 }
 
 function void
-aleman_setup_modal_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_id) {
+aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global) {
     MappingScope();
     SelectMapping(mapping);
-
-    SelectMap(global_id);
-    
+   
     SelectMap(mapid_shared);
     Bind(to_normal_mode, KeyCode_Escape);
     Bind(delete_char, KeyCode_Delete);
@@ -117,12 +137,31 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
     Bind(move_right, KeyCode_Right);
     Bind(move_up, KeyCode_Up);
     Bind(move_down, KeyCode_Down);
+    Bind(exit_4coder, KeyCode_F4, KeyCode_Alt);
+    Bind(project_fkey_command, KeyCode_F1);
+    Bind(project_fkey_command, KeyCode_F2);
+    Bind(project_fkey_command, KeyCode_F3);
+    Bind(project_fkey_command, KeyCode_F4);
+    Bind(project_fkey_command, KeyCode_F5);
+    Bind(project_fkey_command, KeyCode_F6);
+    Bind(project_fkey_command, KeyCode_F7);
+    Bind(project_fkey_command, KeyCode_F8);
+    Bind(project_fkey_command, KeyCode_F9);
+    Bind(project_fkey_command, KeyCode_F10);
+    Bind(project_fkey_command, KeyCode_F11);
+    Bind(project_fkey_command, KeyCode_F12);
+    Bind(project_fkey_command, KeyCode_F13);
+    Bind(project_fkey_command, KeyCode_F14);
+    Bind(project_fkey_command, KeyCode_F15);
+    Bind(project_fkey_command, KeyCode_F16);
     
     SelectMap(mapid_normal);
     ParentMap(mapid_shared);
+    Bind(to_leader_mode, KeyCode_Space);
+    Bind(to_insert_mode, KeyCode_F);
+    Bind(command_lister, KeyCode_A);
     Bind(delete_char, KeyCode_5);
     Bind(backspace_char, KeyCode_D);
-    Bind(to_insert_mode, KeyCode_F);
     Bind(move_up, KeyCode_I);
     Bind(move_left, KeyCode_J);
     Bind(move_down, KeyCode_K);
@@ -130,48 +169,55 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
     Bind(move_left_alpha_numeric_or_camel_boundary,  KeyCode_U);
     Bind(move_right_alpha_numeric_or_camel_boundary, KeyCode_O);
 
+    SelectMap(mapid_leader);
+    ParentMap(mapid_global);
+    Bind(to_normal_mode, KeyCode_Escape);
+    Bind(to_io_mode, KeyCode_I);
+    BindTextInput(to_normal_mode);
+
+    SelectMap(mapid_io);
+    ParentMap(mapid_global);
+    Bind(to_normal_mode, KeyCode_Escape);
+    Bind(interactive_open_or_new, KeyCode_E);
+    BindTextInput(to_normal_mode);
+
     SelectMap(mapid_insert);
     ParentMap(mapid_shared);
     BindTextInput(write_text_and_auto_indent);
     Bind(to_normal_mode, KeyCode_Home);
-
-    // NOTE(alexander): makes sure that normal mode is default on these
-    SelectMap(file_id);
-    ParentMap(mapid_normal);
-    
-    SelectMap(code_id);
-    ParentMap(mapid_normal);
 }
 
 function void
-aleman_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_id){
+aleman_setup_essential_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i64 mapid_code) {
     MappingScope();
     SelectMapping(mapping);
     
-    SelectMap(global_id);
+    SelectMap(mapid_global);
     BindCore(custom_startup, CoreCode_Startup);
     BindCore(default_try_exit, CoreCode_TryExit);
     BindCore(clipboard_record_clip, CoreCode_NewClipboardContents);
     BindMouseWheel(mouse_wheel_scroll);
     BindMouseWheel(mouse_wheel_change_face_size, KeyCode_Control);
     
-    SelectMap(file_id);
-    ParentMap(global_id);
+    // SelectMap(file_id);
+    // ParentMap(global_id);
     // BindTextInput(write_text_input);
     BindMouse(click_set_cursor_and_mark, MouseCode_Left);
     BindMouseRelease(click_set_cursor, MouseCode_Left);
     BindCore(click_set_cursor_and_mark, CoreCode_ClickActivateView);
     BindMouseMove(click_set_cursor_if_lbutton);
     
-    SelectMap(code_id);
-    ParentMap(file_id);
+    // SelectMap(mapid_code);
+    // ParentMap(mapid_file);
     // BindTextInput(write_text_and_auto_indent);
 }
+
+
 
 void
 custom_layer_init(Application_Links *app) {
     Thread_Context *tctx = get_thread_context(app);
-    
+
     // NOTE(allen): setup for default framework
     default_framework_init(app);
 
@@ -180,15 +226,15 @@ custom_layer_init(Application_Links *app) {
 
     mapping_init(tctx, &framework_mapping);
 
-    String_ID global_map_id = vars_save_string_lit("keys_global");
-    String_ID file_map_id = vars_save_string_lit("keys_file");
-    String_ID code_map_id = vars_save_string_lit("keys_code");
+    String_ID mapid_global = vars_save_string_lit("keys_global");
+    String_ID mapid_file = vars_save_string_lit("keys_file");
+    String_ID mapid_code = vars_save_string_lit("keys_code");
 
     // NOTE(alexader): use modal mapping
-    aleman_setup_modal_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
+    aleman_setup_modal_mapping(&framework_mapping, mapid_global);
 
     // NOTE(alexader): use default (non-modal) mapping
     // setup_default_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
 
-    aleman_setup_essential_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
+    aleman_setup_essential_mapping(&framework_mapping, mapid_global, mapid_file, mapid_code);
 }
