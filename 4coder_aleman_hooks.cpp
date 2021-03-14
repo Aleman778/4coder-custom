@@ -1,4 +1,70 @@
 
+CUSTOM_COMMAND_SIG(alemen_view_input_handler)
+CUSTOM_DOC("Input consumption loop for default view behavior")
+{
+    Scratch_Block scratch(app);
+    default_input_handler_init(app, scratch);
+    
+    View_ID view = get_this_ctx_view(app, Access_Always);
+    Managed_Scope scope = view_get_managed_scope(app, view);
+    
+    for (;;){
+        // NOTE(allen): Get input
+        User_Input input = get_next_input(app, EventPropertyGroup_Any, 0);
+        if (input.abort){
+            break;
+        }
+        
+        ProfileScopeNamed(app, "before view input", view_input_profile);
+        
+        // NOTE(allen): Mouse Suppression
+        Event_Property event_properties = get_event_properties(&input.event);
+        if (suppressing_mouse && (event_properties & EventPropertyGroup_AnyMouseEvent) != 0){
+            continue;
+        }
+        
+        // NOTE(allen): Get binding
+        if (implicit_map_function == 0){
+            implicit_map_function = default_implicit_map;
+        }
+        Implicit_Map_Result map_result = implicit_map_function(app, 0, 0, &input.event);
+        if (map_result.command == 0){
+            leave_current_input_unhandled(app);
+            continue;
+        }
+        
+        // NOTE(allen): Run the command and pre/post command stuff
+        aleman_pre_command(app, scope);
+        ProfileCloseNow(view_input_profile);
+        map_result.command(app);
+        ProfileScope(app, "after view input");
+        default_post_command(app, scope);
+    }
+}
+
+
+function void
+draw_insert_mode_cursor_highlight(Application_Links *app, View_ID view_id,
+                                  Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                                  f32 roundness) {
+    b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
+    if (!has_highlight_range){
+        i32 cursor_sub_id = default_cursor_sub_id();
+        i64 cursor_pos = view_get_cursor_pos(app, view_id);
+        i64 mark_pos = view_get_mark_pos(app, view_id);
+        if (cursor_pos != mark_pos){
+            Range_i64 range = Ii64(cursor_pos, mark_pos);
+            draw_character_block(app, text_layout_id, range, roundness, fcolor_id(defcolor_highlight));
+            paint_text_color_fcolor(app, text_layout_id, range, fcolor_id(defcolor_at_highlight));
+        }
+        ARGB_Color color = fcolor_resolve(fcolor_id(defcolor_cursor, cursor_sub_id));
+        Rect_f32 rect = text_layout_character_on_screen(app, text_layout_id, cursor_pos);
+        rect.x1 = rect.x0 + 3.0f;
+        draw_rectangle(app, rect, 0.0f, color);
+    }
+}
+
+
 function void
 aleman_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
                       Buffer_ID buffer, Text_Layout_ID text_layout_id,
@@ -28,6 +94,11 @@ aleman_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
             Comment_Highlight_Pair pairs[] = {
                 {string_u8_litexpr("NOTE"), finalize_color(defcolor_comment_pop, 0)},
                 {string_u8_litexpr("TODO"), finalize_color(defcolor_comment_pop, 1)},
+                {string_u8_litexpr("FIXME"), finalize_color(defcolor_comment_pop, 2)},
+                {string_u8_litexpr("HACK"), finalize_color(defcolor_comment_pop, 3)},
+                {string_u8_litexpr("REVIEW"), finalize_color(defcolor_comment_pop, 4)},
+                {string_u8_litexpr("DEPRECATED"), finalize_color(defcolor_comment_pop, 5)},
+                {string_u8_litexpr("BUG"), finalize_color(defcolor_comment_pop, 6)},
             };
             draw_comment_highlights(app, buffer, text_layout_id, &token_array, pairs, ArrayCount(pairs));
         }
@@ -118,10 +189,11 @@ aleman_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
     switch (fcoder_mode){
         case FCoderMode_Original:
         {
-            if (current_edit_mode == EditorMode_Normal) {
-                draw_original_4coder_style_cursor_mark_highlight(app, view_id, is_active_view, buffer, text_layout_id, cursor_roundness, mark_thickness);
+            if (current_editor_mode == EditorMode_Insert) {
+                draw_insert_mode_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
             } else {
-                draw_notepad_style_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
+                draw_original_4coder_style_cursor_mark_highlight(app, view_id, is_active_view, buffer, text_layout_id, cursor_roundness, mark_thickness);
+
             }
         }break;
         case FCoderMode_NotepadLike:
@@ -205,7 +277,7 @@ aleman_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view
     
     // NOTE(allen): draw the buffer
     aleman_render_buffer(app, view_id, face_id, buffer, text_layout_id, region);
-    
+
     text_layout_free(app, text_layout_id);
     draw_set_clip(app, prev_clip);
 }
@@ -214,7 +286,7 @@ internal void
 aleman_set_all_default_hooks(Application_Links *app){
     set_custom_hook(app, HookID_BufferViewerUpdate, default_view_adjust);
     
-    set_custom_hook(app, HookID_ViewEventHandler, default_view_input_handler);
+    set_custom_hook(app, HookID_ViewEventHandler, alemen_view_input_handler);
     set_custom_hook(app, HookID_Tick, default_tick);
     // set_custom_hook(app, HookID_RenderCaller, default_render_caller);
     set_custom_hook(app, HookID_RenderCaller, aleman_render_caller);
