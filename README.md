@@ -1,4 +1,4 @@
-# My 4coder custom layer
+# My 4coder custom layer (currently WIP)
 My custom layer for the awesome text editor 4coder beta version 4.1.7 super!
 Installation is simple all you need to do is download the sources and place
 them inside your 4coder `custom` folder and compile the executable.
