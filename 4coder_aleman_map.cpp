@@ -4,16 +4,19 @@ CUSTOM_COMMAND_SIG(to_normal_mode) {
     current_editor_mode = EditorMode_Normal;
 }
 
-CUSTOM_COMMAND_SIG(to_leader_mode) {
-    if (current_editor_mode == EditorMode_Normal) {
-        set_current_mapid(app, mapid_leader);
-    }
+CUSTOM_COMMAND_SIG(to_visual_mode) {
+    set_current_mapid(app, mapid_visual);
+    current_editor_mode = EditorMode_Visual;
+    set_mark(app);
 }
 
-CUSTOM_COMMAND_SIG(to_io_mode) {
-    if (current_editor_mode == EditorMode_Normal) {
-        set_current_mapid(app, mapid_io);
-    }
+CUSTOM_COMMAND_SIG(to_leader_mode) {
+    set_current_mapid(app, mapid_leader);
+    
+}
+
+CUSTOM_COMMAND_SIG(to_i_keymap) {
+    set_current_mapid(app, mapid_i_keymap);
 }
 
 CUSTOM_COMMAND_SIG(to_insert_mode) {
@@ -34,9 +37,11 @@ seek_pos_of_visual_line_or_blank_line(Application_Links *app, Side side,
     Vec2_f32 p = view_relative_xy_of_pos(app, view, cursor.line, pos);
     p.x = (side == Side_Min)?(0.f):(max_f32);
     i64 new_pos = view_pos_at_relative_xy(app, view, cursor.line, p);
-
+    
     if (new_pos == pos) {
-        seek_blank_line(app, direction, position);
+        if (pos > 0) {
+            seek_blank_line(app, direction, position);
+        }
     } else {
         view_set_cursor_and_preferred_x(app, view, seek_pos(new_pos));
         no_mark_snap_to_cursor_if_shift(app, view);
@@ -55,7 +60,8 @@ function void
 aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i64 mapid_code) {
     MappingScope();
     SelectMapping(mapping);
-   
+
+    // NOTE(alexander): Keys shared for both insert and normal mode
     SelectMap(mapid_shared);
     Bind(to_normal_mode, KeyCode_Escape);
     Bind(delete_char, KeyCode_Delete);
@@ -64,8 +70,6 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(move_right, KeyCode_Right);
     Bind(move_up, KeyCode_Up);
     Bind(move_down, KeyCode_Down);
-    Bind(change_active_panel, KeyCode_Comma);
-    Bind(change_active_panel_backwards, KeyCode_Period);
     Bind(exit_4coder, KeyCode_F4, KeyCode_Alt);
     Bind(project_fkey_command, KeyCode_F1);
     Bind(project_fkey_command, KeyCode_F2);
@@ -83,11 +87,13 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(project_fkey_command, KeyCode_F14);
     Bind(project_fkey_command, KeyCode_F15);
     Bind(project_fkey_command, KeyCode_F16);
-    
+
+    // NOTE(alexander): Keys for normal mode
     SelectMap(mapid_normal);
     ParentMap(mapid_shared);
     Bind(to_leader_mode, KeyCode_Space);
     Bind(to_insert_mode, KeyCode_F);
+    Bind(to_visual_mode, KeyCode_T);
     Bind(command_lister, KeyCode_A);
     Bind(delete_char, KeyCode_5);
     Bind(backspace_char, KeyCode_D);
@@ -98,32 +104,52 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(move_left_alpha_numeric_or_camel_boundary,  KeyCode_U);
     Bind(move_right_alpha_numeric_or_camel_boundary, KeyCode_O);
     Bind(seek_beginning_of_line_or_block,  KeyCode_H);
-    Bind(seek_beginning_of_line_or_block, KeyCode_Semicolon);
+    Bind(seek_end_of_line_or_block, KeyCode_Semicolon);
+    Bind(comment_line_toggle, KeyCode_X);
+    Bind(cut, KeyCode_X);
+    Bind(copy, KeyCode_C);
+    Bind(paste, KeyCode_V);
+    Bind(undo, KeyCode_Y);
+    Bind(redo, KeyCode_Y);
+    Bind(search, KeyCode_N);
+    Bind(change_active_panel, KeyCode_Comma);
+    Bind(change_active_panel_backwards, KeyCode_Period);
 
+    // NOTE(alexander): Keys for visual mode
+    SelectMap(mapid_visual);
+    ParentMap(mapid_normal);
+
+    // NOTE(alexander): Keys available after pressing leader key
     SelectMap(mapid_leader);
     ParentMap(mapid_global);
     Bind(to_normal_mode, KeyCode_Escape);
-    Bind(to_io_mode, KeyCode_I);
-    Bind(project_f1key_command, KeyCode_P);
     Bind(to_insert_mode, KeyCode_Space);
+    Bind(to_i_keymap, KeyCode_I);
+    Bind(project_f1key_command, KeyCode_P);
+    Bind(save_all_dirty_buffers, KeyCode_Semicolon);
     BindTextInput(to_normal_mode);
 
-    SelectMap(mapid_io);
+    // NOTE(alexander): Keys for i keymap
+    SelectMap(mapid_i_keymap);
     ParentMap(mapid_global);
     Bind(to_normal_mode, KeyCode_Escape);
     Bind(interactive_open_or_new, KeyCode_E);
     Bind(interactive_switch_buffer, KeyCode_D);
+    Bind(open_matching_file_cpp, KeyCode_C);
     BindTextInput(to_normal_mode);
 
+     // NOTE(alexander): Keys for k keymap
+    SelectMap(mapid_k_keymap);
+    ParentMap(mapid_global);
+    Bind(to_normal_mode, KeyCode_Escape);
+    Bind(interactive_open_or_new, KeyCode_E);
+    Bind(interactive_switch_buffer, KeyCode_D);
+    Bind(open_matching_file_cpp, KeyCode_C);
+    BindTextInput(to_normal_mode);
+
+    // NOTE(alexander): Keys for insert mode
     SelectMap(mapid_insert);
     ParentMap(mapid_shared);
     BindTextInput(write_text_and_auto_indent);
     Bind(to_normal_mode, KeyCode_Home);
-
-    // NOTE(alexander): make sure default bindings on buffers is in normal mode
-    // SelectMap(mapid_file);
-    // ParentMap(mapid_normal); 
-
-    // SelectMap(mapid_code);
-    // ParentMap(mapid_normal);
 }

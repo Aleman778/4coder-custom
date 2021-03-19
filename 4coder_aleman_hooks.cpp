@@ -1,5 +1,5 @@
 
-CUSTOM_COMMAND_SIG(alemen_view_input_handler)
+CUSTOM_COMMAND_SIG(aleman_view_input_handler)
 CUSTOM_DOC("Input consumption loop for default view behavior")
 {
     Scratch_Block scratch(app);
@@ -42,21 +42,38 @@ CUSTOM_DOC("Input consumption loop for default view behavior")
     }
 }
 
+function void
+aleman_draw_normal_mode_cursor(Application_Links *app, View_ID view_id, b32 is_active_view,
+                               Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                               f32 roundness, f32 outline_thickness) {
+    b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
+    if (!has_highlight_range) {
+        i32 cursor_sub_id = default_cursor_sub_id();
+        
+        i64 cursor_pos = view_get_cursor_pos(app, view_id);
+        if (is_active_view){
+            draw_character_block(app, text_layout_id, cursor_pos, roundness,
+                                 fcolor_id(defcolor_cursor, cursor_sub_id));
+            paint_text_color_pos(app, text_layout_id, cursor_pos,
+                                 fcolor_id(defcolor_at_cursor));
+        }
+        else{
+            draw_character_wire_frame(app, text_layout_id, cursor_pos,
+                                      roundness, outline_thickness,
+                                      fcolor_id(defcolor_cursor, cursor_sub_id));
+        }
+    }
+}
 
 function void
-draw_insert_mode_cursor_highlight(Application_Links *app, View_ID view_id,
-                                  Buffer_ID buffer, Text_Layout_ID text_layout_id,
-                                  f32 roundness) {
+aleman_draw_insert_mode_cursor(Application_Links *app, View_ID view_id,
+                               Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                               f32 roundness) {
+    
     b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
-    if (!has_highlight_range){
+    if (!has_highlight_range) {
         i32 cursor_sub_id = default_cursor_sub_id();
         i64 cursor_pos = view_get_cursor_pos(app, view_id);
-        i64 mark_pos = view_get_mark_pos(app, view_id);
-        if (cursor_pos != mark_pos){
-            Range_i64 range = Ii64(cursor_pos, mark_pos);
-            draw_character_block(app, text_layout_id, range, roundness, fcolor_id(defcolor_highlight));
-            paint_text_color_fcolor(app, text_layout_id, range, fcolor_id(defcolor_at_highlight));
-        }
         ARGB_Color color = fcolor_resolve(fcolor_id(defcolor_cursor, cursor_sub_id));
         Rect_f32 rect = text_layout_character_on_screen(app, text_layout_id, cursor_pos);
         rect.x1 = rect.x0 + 3.0f;
@@ -64,6 +81,24 @@ draw_insert_mode_cursor_highlight(Application_Links *app, View_ID view_id,
     }
 }
 
+function void
+aleman_draw_visual_mode_cursor_highlight(Application_Links *app, View_ID view_id, b32 is_active_view,
+                                          Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                                          f32 roundness, f32 outline_thickness) {
+    b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
+    if (!has_highlight_range) {
+        i64 cursor_pos = view_get_cursor_pos(app, view_id);
+        i64 mark_pos = view_get_mark_pos(app, view_id);
+        if (cursor_pos != mark_pos){
+            Range_i64 range = Ii64(cursor_pos, mark_pos);
+            draw_character_block(app, text_layout_id, range, roundness, fcolor_id(defcolor_highlight));
+            paint_text_color_fcolor(app, text_layout_id, range, fcolor_id(defcolor_at_highlight));
+        }
+    }
+    
+    aleman_draw_normal_mode_cursor(app, view_id, is_active_view, buffer,
+                                   text_layout_id, roundness, outline_thickness);
+}
 
 function void
 aleman_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
@@ -190,10 +225,13 @@ aleman_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
         case FCoderMode_Original:
         {
             if (current_editor_mode == EditorMode_Insert) {
-                draw_insert_mode_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
+                aleman_draw_insert_mode_cursor(app, view_id, buffer, text_layout_id, cursor_roundness);
+            } else if (current_editor_mode == EditorMode_Visual) {
+                aleman_draw_visual_mode_cursor_highlight(app, view_id, is_active_view, buffer,
+                                                         text_layout_id, cursor_roundness, mark_thickness);
             } else {
-                draw_original_4coder_style_cursor_mark_highlight(app, view_id, is_active_view, buffer, text_layout_id, cursor_roundness, mark_thickness);
-
+                aleman_draw_normal_mode_cursor(app, view_id, is_active_view, buffer,
+                                               text_layout_id, cursor_roundness, mark_thickness);
             }
         }break;
         case FCoderMode_NotepadLike:
@@ -217,7 +255,7 @@ aleman_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view
     View_ID active_view = get_active_view(app, Access_Always);
     b32 is_active_view = (active_view == view_id);
     
-    Rect_f32 region = draw_background_and_margin(app, view_id, is_active_view);
+    Rect_f32 region = draw_background_and_margin(app, view_id, is_active_view, 2.0f);
     Rect_f32 prev_clip = draw_set_clip(app, region);
     
     Buffer_ID buffer = view_get_buffer(app, view_id, Access_Always);
@@ -286,7 +324,7 @@ internal void
 aleman_set_all_default_hooks(Application_Links *app){
     set_custom_hook(app, HookID_BufferViewerUpdate, default_view_adjust);
     
-    set_custom_hook(app, HookID_ViewEventHandler, alemen_view_input_handler);
+    set_custom_hook(app, HookID_ViewEventHandler, aleman_view_input_handler);
     set_custom_hook(app, HookID_Tick, default_tick);
     // set_custom_hook(app, HookID_RenderCaller, default_render_caller);
     set_custom_hook(app, HookID_RenderCaller, aleman_render_caller);

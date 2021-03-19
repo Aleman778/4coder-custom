@@ -5,8 +5,8 @@
 enum {
     EditorMode_Normal = 0,
     EditorMode_Insert = 1,
-    EditorMode_Leader = 2,
-    // TODO(alexander): maybe add visual mode, but this is same as marking
+    EditorMode_Visual = 2,
+    EditorMode_Leader = 3,
 };
 global i32 current_editor_mode = EditorMode_Normal;
 
@@ -14,9 +14,11 @@ global i32 current_editor_mode = EditorMode_Normal;
 CUSTOM_ID(command_map, mapid_shared);
 CUSTOM_ID(command_map, mapid_normal);
 CUSTOM_ID(command_map, mapid_insert);
+CUSTOM_ID(command_map, mapid_visual);
 CUSTOM_ID(command_map, mapid_leader);
-CUSTOM_ID(command_map, mapid_io);
-CUSTOM_ID(command_map, mapid_workspace);
+CUSTOM_ID(command_map, mapid_i_keymap);
+CUSTOM_ID(command_map, mapid_k_keymap);
+CUSTOM_ID(command_map, mapid_w_keymap);
 
 void
 set_current_mapid(Application_Links* app, Command_Map_ID mapid) {
@@ -26,7 +28,6 @@ set_current_mapid(Application_Links* app, Command_Map_ID mapid) {
     Command_Map_ID* map_id_ptr = scope_attachment(app, scope, buffer_map_id, Command_Map_ID);
     *map_id_ptr = mapid;
 }
-
 
 #include "4coder_aleman_framework.cpp"
 #include "4coder_aleman_hooks.cpp"
