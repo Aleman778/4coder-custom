@@ -5,7 +5,7 @@ them inside your 4coder `custom` folder and compile the executable.
 For compiling the executable there already exists build scripts for each platform and
 target architecture, for example you can call this inside the 4coder root directory:
 ```
-custom\bin\buildsuper_x64-win.bat ..\4coder-custom\4coder_aleman_bindings.cpp
+custom\bin\buildsuper_x64-win.bat custom\4coder_aleman_bindings.cpp
 ```
 Before compiling make sure that the editor is closed and that your working directory
 is the 4coder root i.e. same directory as the `4ed` executable.
