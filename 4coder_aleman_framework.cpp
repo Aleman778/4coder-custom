@@ -52,7 +52,12 @@ CUSTOM_COMMAND_SIG(custom_startup) {
                              description.parameters.hinting);
         default_4coder_side_by_side_panels(app, file_names);
         b32 auto_load = def_get_config_b32(vars_save_string_lit("automatically_load_project"));
+
         if (auto_load) {
+            Scratch_Block scratch(app);
+            String_Const_u8 directory = def_get_config_string(scratch,
+                                                              vars_save_string_lit("default_project_directory"));
+            set_hot_directory(app, directory);
             load_project(app);
         }
     }

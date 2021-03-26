@@ -47,7 +47,8 @@ aleman_draw_normal_mode_cursor(Application_Links *app, View_ID view_id, b32 is_a
                                Buffer_ID buffer, Text_Layout_ID text_layout_id,
                                f32 roundness, f32 outline_thickness) {
     b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
-    if (!has_highlight_range) {
+    View_ID active_view_id = get_active_view(app, Access_ReadVisible);
+    if (!has_highlight_range && active_view_id == view_id) {
         i32 cursor_sub_id = default_cursor_sub_id();
         
         i64 cursor_pos = view_get_cursor_pos(app, view_id);
@@ -69,9 +70,9 @@ function void
 aleman_draw_insert_mode_cursor(Application_Links *app, View_ID view_id,
                                Buffer_ID buffer, Text_Layout_ID text_layout_id,
                                f32 roundness) {
-    
     b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
-    if (!has_highlight_range) {
+    View_ID active_view_id = get_active_view(app, Access_ReadVisible);
+    if (!has_highlight_range && active_view_id == view_id) {
         i32 cursor_sub_id = default_cursor_sub_id();
         i64 cursor_pos = view_get_cursor_pos(app, view_id);
         ARGB_Color color = fcolor_resolve(fcolor_id(defcolor_cursor, cursor_sub_id));
@@ -86,7 +87,8 @@ aleman_draw_visual_mode_cursor_highlight(Application_Links *app, View_ID view_id
                                           Buffer_ID buffer, Text_Layout_ID text_layout_id,
                                           f32 roundness, f32 outline_thickness) {
     b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
-    if (!has_highlight_range) {
+    View_ID active_view_id = get_active_view(app, Access_ReadVisible);
+    if (!has_highlight_range && active_view_id == view_id) {
         i64 cursor_pos = view_get_cursor_pos(app, view_id);
         i64 mark_pos = view_get_mark_pos(app, view_id);
         if (cursor_pos != mark_pos){
@@ -255,7 +257,7 @@ aleman_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view
     View_ID active_view = get_active_view(app, Access_Always);
     b32 is_active_view = (active_view == view_id);
     
-    Rect_f32 region = draw_background_and_margin(app, view_id, is_active_view, 2.0f);
+    Rect_f32 region = draw_background_and_margin(app, view_id, is_active_view, 1.0f);
     Rect_f32 prev_clip = draw_set_clip(app, region);
     
     Buffer_ID buffer = view_get_buffer(app, view_id, Access_Always);

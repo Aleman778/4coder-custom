@@ -94,7 +94,10 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(to_leader_mode, KeyCode_Space);
     Bind(to_insert_mode, KeyCode_F);
     Bind(to_visual_mode, KeyCode_T);
+    Bind(open_panel_hsplit, KeyCode_4);
     Bind(command_lister, KeyCode_A);
+    Bind(snipe_backward_whitespace_or_token_boundary, KeyCode_E);
+    Bind(snipe_forward_whitespace_or_token_boundary, KeyCode_R);
     Bind(delete_char, KeyCode_5);
     Bind(backspace_char, KeyCode_D);
     Bind(move_up, KeyCode_I);
@@ -110,7 +113,7 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(copy, KeyCode_C);
     Bind(paste, KeyCode_V);
     Bind(undo, KeyCode_Y);
-    Bind(redo, KeyCode_Y);
+    // Bind(redo, KeyCode_Y); // TODO(alexander): what to bind for redo????
     Bind(search, KeyCode_N);
     Bind(change_active_panel, KeyCode_Comma);
     Bind(change_active_panel_backwards, KeyCode_Period);
@@ -124,7 +127,10 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     ParentMap(mapid_global);
     Bind(to_normal_mode, KeyCode_Escape);
     Bind(to_insert_mode, KeyCode_Space);
+    Bind(open_panel_vsplit, KeyCode_4);
     Bind(to_i_keymap, KeyCode_I);
+    Bind(goto_beginning_of_file, KeyCode_H);
+    Bind(goto_end_of_file, KeyCode_N);
     Bind(project_f1key_command, KeyCode_P);
     Bind(save_all_dirty_buffers, KeyCode_Semicolon);
     BindTextInput(to_normal_mode);
