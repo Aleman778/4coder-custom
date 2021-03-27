@@ -18,6 +18,7 @@ CUSTOM_ID(command_map, mapid_visual);
 CUSTOM_ID(command_map, mapid_leader);
 CUSTOM_ID(command_map, mapid_i_keymap);
 CUSTOM_ID(command_map, mapid_k_keymap);
+CUSTOM_ID(command_map, mapid_d_keymap);
 CUSTOM_ID(command_map, mapid_w_keymap);
 
 void
