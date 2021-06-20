@@ -27,7 +27,15 @@ CUSTOM_DOC("Input consumption loop for default view behavior")
         if (implicit_map_function == 0){
             implicit_map_function = default_implicit_map;
         }
+        
         Implicit_Map_Result map_result = implicit_map_function(app, 0, 0, &input.event);
+        if (map_result.map == 0 && map_result.command == write_text_and_auto_indent) {
+            // HACK(alexander): disable global map, causes issues when entering new files
+            set_current_mapid(app, mapid_normal);
+            leave_current_input_unhandled(app);
+            continue;
+        }
+        
         if (map_result.command == 0){
             leave_current_input_unhandled(app);
             continue;

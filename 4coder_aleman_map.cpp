@@ -67,10 +67,17 @@ CUSTOM_COMMAND_SIG(insert_newline) {
     write_text(app, string_u8_litexpr("\n"));
 }
 
+CUSTOM_COMMAND_SIG(append_newline) {
+    insert_newline(app);
+    move_left(app);
+}
+
 function void
 aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i64 mapid_code) {
     MappingScope();
     SelectMapping(mapping);
+
+    SelectMap(mapid_global);
 
     // NOTE(alexander): Keys shared for both insert and normal mode
     SelectMap(mapid_shared);
@@ -109,6 +116,7 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(to_visual_mode, KeyCode_T);
     Bind(insert_newline, KeyCode_Return);
     // Bind(if_read_only_goto_position,  KeyCode_Return);
+    Bind(close_panel, KeyCode_3);
     Bind(open_panel_hsplit, KeyCode_4);
     Bind(command_lister, KeyCode_A);
     Bind(snipe_backward_whitespace_or_token_boundary, KeyCode_E);
@@ -128,11 +136,12 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(seek_end_of_line_or_block, KeyCode_Quote);
     Bind(goto_next_jump, KeyCode_BackwardSlash);
     Bind(comment_line_toggle, KeyCode_Z);
+    Bind(append_newline,  KeyCode_S);
     Bind(cut, KeyCode_X);
     Bind(copy, KeyCode_C);
     Bind(paste, KeyCode_V);
     Bind(undo, KeyCode_Y);
-    // Bind(redo, KeyCode_Y); // TODO(alexander): what to bind for redo????
+    Bind(redo, KeyCode_B);
     Bind(search, KeyCode_N);
     Bind(change_active_panel, KeyCode_Comma);
     Bind(change_active_panel_backwards, KeyCode_Period);
@@ -151,6 +160,7 @@ aleman_setup_modal_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_file, i
     Bind(to_k_keymap, KeyCode_K);
     Bind(to_d_keymap, KeyCode_D);
     
+    Bind(close_panel, KeyCode_3);
     Bind(open_panel_vsplit, KeyCode_4);
     Bind(select_all, KeyCode_A);
     Bind(query_replace, KeyCode_R);

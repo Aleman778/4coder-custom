@@ -1,9 +1,9 @@
 
 function void
 aleman_4coder_initialize(Application_Links *app,
-                     String_Const_u8_Array file_names,
-                     i32 override_font_size,
-                     b32 override_hinting) {
+                         String_Const_u8_Array file_names,
+                         i32 override_font_size,
+                         b32 override_hinting) {
     Scratch_Block scratch(app);
     
     load_config_and_apply(app, &global_config_arena, override_font_size, override_hinting);
@@ -69,7 +69,7 @@ CUSTOM_COMMAND_SIG(custom_startup) {
 }
 
 function void
-aleman_pre_command(Application_Links *app, Managed_Scope scope){
+aleman_pre_command(Application_Links *app, Managed_Scope scope) {
     Rewrite_Type *next_rewrite =
         scope_attachment(app, scope, view_next_rewrite_loc, Rewrite_Type);
     *next_rewrite = Rewrite_None;
@@ -102,15 +102,8 @@ aleman_setup_essential_mapping(Mapping *mapping, i64 mapid_global, i64 mapid_fil
     BindMouseWheel(mouse_wheel_scroll);
     BindMouseWheel(mouse_wheel_change_face_size, KeyCode_Control);
     
-    // SelectMap(file_id);
-    // ParentMap(global_id);
-    // BindTextInput(write_text_input);
     BindMouse(click_set_cursor_and_mark, MouseCode_Left);
     BindMouseRelease(click_set_cursor, MouseCode_Left);
     BindCore(click_set_cursor_and_mark, CoreCode_ClickActivateView);
     BindMouseMove(click_set_cursor_if_lbutton);
-    
-    // SelectMap(mapid_code);
-    // ParentMap(mapid_file);
-    // BindTextInput(write_text_and_auto_indent);
 }

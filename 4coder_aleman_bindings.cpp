@@ -12,8 +12,8 @@ global i32 current_editor_mode = EditorMode_Normal;
 
 // NOTE(alexander): define custom binding maps for modal editing
 CUSTOM_ID(command_map, mapid_shared);
-CUSTOM_ID(command_map, mapid_normal);
 CUSTOM_ID(command_map, mapid_insert);
+CUSTOM_ID(command_map, mapid_normal);
 CUSTOM_ID(command_map, mapid_visual);
 CUSTOM_ID(command_map, mapid_leader);
 CUSTOM_ID(command_map, mapid_i_keymap);
@@ -61,6 +61,4 @@ custom_layer_init(Application_Links *app) {
     // setup_default_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
 
     aleman_setup_essential_mapping(&framework_mapping, mapid_global, mapid_file, mapid_code);
-
-    
 }
