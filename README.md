@@ -9,8 +9,8 @@ Note that you need the paid version of 4coder to enable customizations.
 2. `git clone https://github.com/Aleman778/4coder_aleman.git`
 3. `cd 4coder_aleman`
 4. - Windows: `build.bat`
-   - Mac Os: `./build-mac.sh`
-   - Linux: `./build-linux.sh`
+   - Mac Os: `./build_mac.sh`
+   - Linux: `./build_linux.sh`
 
 ## Keybindings
 The default keybindings are loosely based on to the `xah-fly-keys` which are explained
