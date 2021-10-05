@@ -1,4 +1,17 @@
 
+typedef i32 Editor_Mode;
+enum {
+    EditorMode_Normal,
+    EditorMode_Insert,
+    EditorMode_Visual,
+    EditorMode_Leader,
+    EditorMode_Keymap_I,
+    EditorMode_Keymap_K,
+    EditorMode_Keymap_D,
+    EditorMode_Keymap_W,
+};
+global Editor_Mode current_editor_mode = EditorMode_Normal;
+
 CUSTOM_COMMAND_SIG(to_normal_mode) {
     set_current_mapid(app, mapid_normal);
     current_editor_mode = EditorMode_Normal;
